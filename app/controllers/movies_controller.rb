@@ -12,12 +12,41 @@ class MoviesController < ApplicationController
     @all_ratings = Movie.all_ratings
     @ratings_to_show = []
     
+    if params['commit'] != nil && params['ratings'] == nil
+      params['ratings'] = Hash[@all_ratings.collect { |item| [item, "1"] } ]
+    end
+    
     #check box
     @ratings = params['ratings']
+    if @ratings.present?
+      session['ratings'] = @ratings
+    end
+    
+    # sorting
+    @sorted_by = params['sorted_by']
+    if @sorted_by.present?
+      session['sorted_by'] = @sorted_by
+    end
+    
+    # render
+    @ratings = session['ratings']
     if @ratings.present?
       @ratings_to_show = @ratings.keys
       @movies = Movie.with_ratings(@ratings_to_show)
     end
+    
+    @sorted_by = session['sorted_by']
+    if @sorted_by.present?
+      @movies = @movies.order(@sorted_by)
+      if @sorted_by == 'title'
+        @title_class = 'hilite'
+      elsif @sorted_by == 'release_date'
+        @release_date_class = 'hilite'
+      else
+        print "Unknown Sorting Key"
+      end  
+    end   
+    
   end
 
   def new
